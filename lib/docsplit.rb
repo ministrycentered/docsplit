@@ -16,8 +16,12 @@ module Docsplit
 
   OFFICE        = RUBY_PLATFORM.match(/darwin/i) ? '' : "-Doffice.home=#{office}"
 
+  urelib ||= RUBY_PLATFORM.match(/darwin/i) ? '/Applications/OpenOffice.org.app/Contents/program/urelibs' : '/usr/lib/ure/lib'
+
+  CONNECTION_MODE = "-Djava.library.path=#{urelib}"
+
   METADATA_KEYS = [:author, :date, :creator, :keywords, :producer, :subject, :title, :length]
-  
+
   GM_FORMATS    = ["image/gif", "image/jpeg", "image/png", "image/x-ms-bmp", "image/svg+xml", "image/tiff", "image/x-portable-bitmap", "application/postscript", "image/x-portable-pixmap"]
 
   DEPENDENCIES  = {:java => false, :gm => false, :pdftotext => false, :pdftk => false, :tesseract => false}
@@ -99,7 +103,7 @@ module Docsplit
   # Runs a Java command, with quieted logging, and the classpath set properly.
   def self.run(command, pdfs, opts, return_output=false)
     pdfs    = [pdfs].flatten.map{|pdf| "\"#{pdf}\""}.join(' ')
-    cmd     = "java #{HEADLESS} #{LOGGING} #{OFFICE} -cp #{CLASSPATH} #{command} #{pdfs} 2>&1"
+    cmd     = "java #{HEADLESS} #{LOGGING} #{CONNECTION_MODE} #{OFFICE} -cp #{CLASSPATH} #{command} #{pdfs} 2>&1"
     result  = `#{cmd}`.chomp
     raise ExtractionFailed, result if $? != 0
     return return_output ? (result.empty? ? nil : result) : true
